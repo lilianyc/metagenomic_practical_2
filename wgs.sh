@@ -30,7 +30,6 @@ fastq_R2=$(echo $name_R2|sed "s:\.gz::g")
 echo $fastq_R1 $fastq_R2
 
 # Align sample to genomes.
-: '
 soft/bowtie2 -1 $reads_dir/$fastq_R1 -2 $reads_dir/$fastq_R2 \
              -x databases/all_genome.fasta -S $output_dir/alignments.sam \
              --end-to-end --fast 
@@ -60,9 +59,11 @@ soft/prodigal -i $output_dir/megahit/final.contigs.fa -d $output_dir/genes.fna
 
 # Select full genes.
 sed "s:>:*\n>:g" $output_dir/genes.fna | sed -n "/partial=00/,/*/p"|grep -v "*" > $output_dir/genes_full.fna
-'
+
 # Annotate the full genes.
-soft/blastn -db databases/resfinder.fna -query $output_dir/genes_full.fna -out $output_dir/annotated_genes.tsv -evalue 0.001 -perc_identity 80 -qcov_hsp_perc 80 -outfmt 6
+soft/blastn -db databases/resfinder.fna -query $output_dir/genes_full.fna \
+            -out $output_dir/annotated_genes.tsv -outfmt 6 \
+            -evalue 0.001 -perc_identity 80 -qcov_hsp_perc 80
 
 # By parsing annotated_genes.tsv, there are resistance genes found, mostly for
 # beta-lactamase and sulphonamide.
